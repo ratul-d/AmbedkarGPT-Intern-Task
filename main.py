@@ -4,12 +4,12 @@ from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import Chroma
 from langchain_ollama import OllamaLLM
 from langchain_classic.chains.retrieval_qa.base import RetrievalQA
-
+import typer
 
 # Loading Text
 loader = TextLoader("speech.txt")
 document = loader.load()
-print("LOADED TEXT.")
+typer.echo(typer.style("LOADED TEXT.",fg=typer.colors.BRIGHT_GREEN))
 
 
 # Chunking
@@ -20,27 +20,27 @@ text_splitter = CharacterTextSplitter(
     length_function=len
 )
 chunks = text_splitter.split_documents(document)
-print("TEXT CHUNKING COMPLETE.")
+typer.echo(typer.style("TEXT CHUNKING COMPLETE.",fg=typer.colors.BRIGHT_GREEN))
 
 
 # Embedder
 embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-print("EMBEDDER LOADED.")
+typer.echo(typer.style("EMBEDDER LOADED.",fg=typer.colors.GREEN))
 
 
 # Embedding and Storing in Vector DB
 db = Chroma.from_documents(chunks, embeddings, persist_directory="chrome_db")
-print("EMBEDDING DONE & STORED IN CHROMA DB.")
+typer.echo(typer.style("EMBEDDING DONE & STORED IN CHROMA DB.",fg=typer.colors.BRIGHT_GREEN))
 
 
 # Retriever
 retriever =  db.as_retriever(search_kwargs = {"k":3})
-print("RETRIEVER LOADED.")
+typer.echo(typer.style("RETRIEVER LOADED.",fg=typer.colors.BRIGHT_GREEN))
 
 
 # LLM
 llm = OllamaLLM(model="mistral")
-print("LLM LOADED.")
+typer.echo(typer.style("LLM LOADED.",fg=typer.colors.BRIGHT_GREEN))
 # LLM TESTING
 # print(llm.invoke("Hello, what are you?"))
 
@@ -70,8 +70,16 @@ qa = RetrievalQA.from_chain_type(
 
 # QA Loop
 while True:
-    query = input("\nAsk a question or (exit/quit): ")
+    typer.echo(typer.style("\nAsk a question or (exit/quit): ", fg=typer.colors.BRIGHT_GREEN), nl=False)
+    query = input()
     if query.lower() in ["exit","quit"]:
         break
+
+    retrieved_docs = retriever.invoke(query)
+    typer.echo(typer.style("\nRetrieved Chunks: ",fg=typer.colors.BRIGHT_GREEN))
+    for i, doc in enumerate(retrieved_docs,start=1):
+        print(f"Chunk {i}:", doc.page_content)
+
     result = qa.invoke({"query": query})
-    print("\nAnswer:",result["result"])
+    typer.echo(typer.style("\nResponse: ", fg=typer.colors.BRIGHT_GREEN))
+    print(result["result"])

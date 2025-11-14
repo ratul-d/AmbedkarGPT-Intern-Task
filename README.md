@@ -2,13 +2,13 @@
 
 ## **Overview**
 
-This repository contains a minimal Retrieval-Augmented Generation (RAG) pipeline built using LangChain, Hugging Face embeddings, Chroma vector storage, and an Ollama-hosted LLM. The system ingests a speech by Dr. B. R. Ambedkar, stores semantic representations locally, and enables a command-line interface for answering questions strictly grounded in the provided document.
+This repository contains a fully local Retrieval-Augmented Generation (RAG) pipeline built using LangChain, Sentence-Transformers embeddings, Chroma vector storage, and an Ollama-hosted LLM. The system ingests a speech by Dr. B. R. Ambedkar, stores semantic representations locally, and enables a command-line interface for answering questions strictly grounded in the provided document. The entire workflow runs offline without relying on any external APIs or cloud services.
 
 The project demonstrates the full lifecycle of a text-based Q&A system:
 
 1. **Document ingestion**
 2. **Chunking and preprocessing**
-3. **Embedding generation**
+3. **Embedding generation using a Sentence-Transformers (SBERT) model**
 4. **Vector database storage (Chroma)**
 5. **Retriever configuration**
 6. **LLM-powered RAG query answering**
@@ -166,32 +166,49 @@ while True:
 
 ### **Step 1: Place `speech.txt` in the project directory**
 
-Ensure the file is named `speech.txt` and located in the same directory as the script.
-This file serves as the only knowledge source for the Q&A system.
+Ensure the file is named `speech.txt` and located in the same directory as the Python script.
+This file serves as the sole knowledge source for the Q&A system.
+
+### **Step 2: Start the Ollama server**
+
+Before running the main script, the local LLM service must be active.
+In a separate terminal, start the Ollama server:
+
+```bash
+ollama serve
+```
+
+This keeps the model available for inference during your RAG pipeline execution.
 
 
-### **Step 2: Run the Python script**
+### **Step 3: Run the Python script**
 
-Execute the program using:
+With Ollama running, execute the program:
 
 ```bash
 python main.py
 ```
 
-During startup, the script will load the text, split it into chunks, create embeddings, build or reuse the Chroma vector database, and initialize the LLM through Ollama.
+On startup, the script will:
+
+* Load the speech text
+* Split it into chunks
+* Generate Sentence-Transformer embeddings
+* Build or reuse the Chroma vector database
+* Connect to the locally running Ollama model
 
 
-### **Step 3: Interact with the CLI**
+### **Step 4: Interact with the CLI**
 
-Once the pipeline is initialized, you will be prompted to enter a question:
+After initialization, you can begin asking questions:
 
 ```
 Ask a question or (exit/quit): What did Ambedkar say about democracy?
 Answer: ...
 ```
 
-You can ask any question related to the content of `speech.txt`.
-Type `exit` or `quit` to terminate the session.
+You may ask any question related to the content of `speech.txt`.
+Enter `exit` or `quit` to end the session.
 
 ---
 
