@@ -5,6 +5,7 @@ from langchain_community.vectorstores import Chroma
 from langchain_ollama import OllamaLLM
 from langchain_classic.chains.retrieval_qa.base import RetrievalQA
 import typer
+import urllib.request, json, sys
 
 # Loading Text
 loader = TextLoader("speech.txt")
@@ -25,7 +26,7 @@ typer.echo(typer.style("TEXT CHUNKING COMPLETE.",fg=typer.colors.BRIGHT_GREEN))
 
 # Embedder
 embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-typer.echo(typer.style("EMBEDDER LOADED.",fg=typer.colors.GREEN))
+typer.echo(typer.style("EMBEDDER LOADED.",fg=typer.colors.BRIGHT_GREEN))
 
 
 # Embedding and Storing in Vector DB
@@ -37,6 +38,19 @@ typer.echo(typer.style("EMBEDDING DONE & STORED IN CHROMA DB.",fg=typer.colors.B
 retriever =  db.as_retriever(search_kwargs = {"k":3})
 typer.echo(typer.style("RETRIEVER LOADED.",fg=typer.colors.BRIGHT_GREEN))
 
+
+# Check if Ollama server is running; require user to run `ollama serve`
+try:
+    with urllib.request.urlopen("http://localhost:11434/api/tags", timeout=2) as r:
+        _ = json.loads(r.read().decode())
+except Exception:
+    typer.echo(typer.style(
+        "\nERROR: Ollama server is NOT running.\n"
+        "Please open another terminal and run:\n\n"
+        "   ollama serve\n",
+        fg=typer.colors.RED, bold=True
+    ))
+    sys.exit(1)
 
 # LLM
 llm = OllamaLLM(model="mistral")
